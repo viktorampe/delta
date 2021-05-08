@@ -8,17 +8,19 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import { RootStackParamList } from '../App';
 import { CoinContext } from '../context/CoinsContext';
 import Coin from '../models/Coin';
+import DeltaButton from '../components/DeltaButton';
+import Apiconfig from '../config/Apiconfig';
 
 type CoinListNavProps = StackNavigationProp<RootStackParamList, 'Coin'>;
 type Props = { navigation: CoinListNavProps; };
 
 export default function CoinList({navigation}: Props) {
 
-  const PAGE_SIZE = 15;
-
   const {coins, setCoins} = useContext(CoinContext);
   const [pageNumber, setPageNumber] = useState(1);
   const [isLoading, setisLoading] = useState(true);
+
+  const LAST_PAGE = Math.ceil(Apiconfig.TOTAL_COINS / Apiconfig.PAGE_SIZE);
 
   useEffect(() => {
     (async () => {
@@ -29,12 +31,32 @@ export default function CoinList({navigation}: Props) {
     
   const fetchCoins = async () => {
     try {
-      const response = await axios(`https://api.getdelta.io/web/coins?page%5Bnumber%5D=${pageNumber}&page%5Bsize%5D=${PAGE_SIZE}`);
-      console.log(response.data)
-      setCoins(response.data.data);
+      // fetch
+      const response = await axios(`${Apiconfig.DELTA_API_URL}?page%5Bnumber%5D=${pageNumber}&page%5Bsize%5D=${Apiconfig.PAGE_SIZE}`);
+      // set coins
+      setCoins((prevCoins: Coin[]) => {
+        if (prevCoins.length) { return [...prevCoins, ...response.data.data]; }
+        return response.data.data;
+      });
     } catch (err) { console.log(err.message); }
     finally { setisLoading(false); }
   }
+
+  const incrementPage = () => {
+    if (pageNumber < LAST_PAGE) { setPageNumber(pageNumber + 1); }
+  }
+  
+  const renderLoadMoreBtn = () => {
+    if (pageNumber <= LAST_PAGE) {
+      return (
+        <DeltaButton
+          btnTitle="Load more"
+          btnOnPress={incrementPage}
+        ></DeltaButton> 
+      )
+    }
+  }
+
   const renderCoin = ({item}: {item: Coin}) => {
     return (
       <TouchableOpacity style={styles.coin}
@@ -49,11 +71,15 @@ export default function CoinList({navigation}: Props) {
 
   const renderCoinList = () => {
     return (
-      <FlatList style={styles.coinList}
-        data={coins}
-        renderItem={renderCoin}
-        keyExtractor={coin => `${coin.id}`}
-      />
+      <View style={styles.coinList}>
+        <Text>Coins: {coins.length}</Text>
+        <FlatList
+          data={coins}
+          renderItem={renderCoin}
+          keyExtractor={coin => `${coin.id}`}
+        /> 
+        {renderLoadMoreBtn()}      
+      </View>
     )
   }
 
@@ -83,6 +109,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   coinList: {
+    flex: 1,
     marginTop: 50,
     marginBottom: 50,
     width: '90%',

@@ -1,5 +1,5 @@
 import { RouteProp } from '@react-navigation/native';
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { RootStackParamList } from "../App";
 import { CoinContext } from '../context/CoinsContext';
@@ -17,13 +17,25 @@ export default function CoinDetail({route}: Props) {
     const {coins, setCoins} = useContext<CoinContextType>(CoinContext);
     const [coin, setCoin] = useState<Coin>();
 
-    // use effect
-    const c = coins.find(c => c.id === coinId);
-    setCoin(c);
+    useEffect(() => {
+        const c = coins.find(c => c.id === coinId);
+        setCoin(c);
+    })
     
     return (
         <View style={styles.container}>
             <Text>{coin?.name}</Text>
+            <Text>{coin?.code}</Text>
+            <Text>{coin?.dirtyCode}</Text>
+            <Text>{coin?.priceInUSD}</Text>
+            <Text>{coin?.marketCapInUSD}</Text>
+            <Text>{coin?.marketCapRank}</Text>
+            <Text>{coin?.percentChange1h}</Text>
+            <Text>{coin?.percentChange24h}</Text>
+            <Text>{coin?.percentChange7d}</Text>
+            <Text>{coin?.slug}</Text>
+            <Text>{coin?.availableSupply}</Text>
+            <Text>{coin?.totalSupply}</Text>
         </View>
     );
 }

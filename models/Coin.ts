@@ -1,6 +1,6 @@
 export default interface Coin {
     id: string;
-    name: number;
+    name: string;
     code: string;
     dirtyCode: string;
     priceInUSD: number;

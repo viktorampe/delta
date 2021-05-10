@@ -1,19 +1,21 @@
-import React from 'react';
-import { View, Button } from 'react-native';
+import React from "react";
+import { View, Button, StyleSheet } from "react-native";
+import Colors from "../config/Colors";
 
 export interface DetlaButtonProps {
-    btnTitle: string;
-    btnOnPress: () => void;
+  btnTitle: string;
+  btnOnPress: () => void;
 }
 
-export default function DeltaButton({btnTitle, btnOnPress}: DetlaButtonProps) {
-
-    return (
-        <View>
-            <Button
-                onPress={() => btnOnPress()}
-                title={btnTitle}
-            ></Button>
-        </View>
-    )
-} 
+export default function DeltaButton({
+  btnTitle,
+  btnOnPress,
+}: DetlaButtonProps) {
+  return (
+    <Button
+      color={Colors.primary}
+      onPress={() => btnOnPress()}
+      title={btnTitle}
+    ></Button>
+  );
+}

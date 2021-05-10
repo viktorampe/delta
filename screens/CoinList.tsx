@@ -2,14 +2,15 @@ import axios from 'axios';
 
 import React, { useContext, useEffect, useState } from 'react';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { FlatList, StyleSheet, View } from 'react-native';
 
 import { RootStackParamList } from '../App';
 import { CoinContext } from '../context/CoinsContext';
 import Coin from '../models/Coin';
 import DeltaButton from '../components/DeltaButton';
 import Apiconfig from '../config/Apiconfig';
+import ListCoin from '../components/ListCoin';
+import Spinner from '../components/Spinner';
 
 type CoinListNavProps = StackNavigationProp<RootStackParamList, 'Coin'>;
 type Props = { navigation: CoinListNavProps; };
@@ -35,8 +36,10 @@ export default function CoinList({navigation}: Props) {
       const response = await axios(`${Apiconfig.DELTA_API_URL}?page%5Bnumber%5D=${pageNumber}&page%5Bsize%5D=${Apiconfig.PAGE_SIZE}`);
       // set coins
       setCoins((prevCoins: Coin[]) => {
-        if (prevCoins.length) { return [...prevCoins, ...response.data.data]; }
-        return response.data.data;
+        // first fetch
+        if (!prevCoins) { return response.data.data; }
+        // add response to coins
+        return [...prevCoins, ...response.data.data];
       });
     } catch (err) { console.log(err.message); }
     finally { setisLoading(false); }
@@ -45,53 +48,37 @@ export default function CoinList({navigation}: Props) {
   const incrementPage = () => {
     if (pageNumber < LAST_PAGE) { setPageNumber(pageNumber + 1); }
   }
-  
-  const renderLoadMoreBtn = () => {
-    if (pageNumber <= LAST_PAGE) {
-      return (
-        <DeltaButton
-          btnTitle="Load more"
-          btnOnPress={incrementPage}
-        ></DeltaButton> 
-      )
-    }
-  }
 
   const renderCoin = ({item}: {item: Coin}) => {
     return (
-      <TouchableOpacity style={styles.coin}
-        onPress={() => navigation.navigate('Coin', { coinId: item.id})}>
-        <Text>{item.name}</Text>
-        <Text>{item.code}</Text>
-        <Text>{item.priceInUSD}</Text>
-        <Text>{item.percentChange1h}</Text>
-      </TouchableOpacity>
+      <ListCoin
+        onPress={() => navigation.navigate('Coin', { coinId: item.id})}
+        id={item.id}
+        name={item.name}
+        code={item.code}
+        priceInUSD={item.priceInUSD}
+        percentChange1h={item.percentChange1h}
+      ></ListCoin>
     )
   }
 
   const renderCoinList = () => {
     return (
       <View style={styles.coinList}>
-        <Text>Coins: {coins.length}</Text>
         <FlatList
           data={coins}
           renderItem={renderCoin}
           keyExtractor={coin => `${coin.id}`}
-        /> 
-        {renderLoadMoreBtn()}      
+          onEndReached={incrementPage}
+          refreshing={isLoading}
+        />     
       </View>
-    )
-  }
-
-  const renderSpinner = () => {
-    return (
-      <Text>Spinner here</Text>
     )
   }
   
   const showCoinList = () => {
     if (!isLoading) { return renderCoinList(); } 
-    else { return renderSpinner(); }
+    else { return <Spinner></Spinner> }
   }
 
   return (
@@ -110,15 +97,6 @@ const styles = StyleSheet.create({
   },
   coinList: {
     flex: 1,
-    marginTop: 50,
-    marginBottom: 50,
-    width: '90%',
-  },
-  coin: {
     width: '100%',
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: 10,
-    marginBottom: 5
   }
 });

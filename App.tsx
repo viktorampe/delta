@@ -31,9 +31,3 @@ function App() {
 }
 
 export default App;
-
-
-// TODO: api call url as constant
-// TODO: Default values
-// TODO: styles in seperate file
-// 
